@@ -4,13 +4,14 @@ import argparse
 import socket
 import threading
 
+
 CACHE_POLICY = True  # whether to cache responses or not
 # the maximum time that the response can be cached for (in seconds)
 CACHE_CONTROL = 2 ** 16 - 1
 
 
 def calculate(expression: api.Expr, steps: list[str] = []) -> tuple[numbers.Real, list[api.Expression]]:
-    '''    
+    '''
     Function which calculates the result of an expression and returns the result and the steps taken to calculate it.
     The function recursively descends into the expression tree and calculates the result of the expression.
     Each expression wraps the result of its subexpressions in parentheses and adds the result to the steps list.
@@ -23,8 +24,7 @@ def calculate(expression: api.Expr, steps: list[str] = []) -> tuple[numbers.Real
         left_steps, right_steps = [], []
         left, left_steps = calculate(expr.left_operand, left_steps)
         for step in left_steps[:-1]:
-            steps.append(api.BinaryExpr(
-                step, expr.operator, expr.right_operand))
+            steps.append(api.BinaryExpr(step, expr.operator, expr.right_operand))
         right, left_steps = calculate(expr.right_operand, right_steps)
         for step in right_steps[:-1]:
             steps.append(api.BinaryExpr(left, expr.operator, step))
@@ -45,8 +45,7 @@ def calculate(expression: api.Expr, steps: list[str] = []) -> tuple[numbers.Real
             arg_steps = []
             arg, arg_steps = calculate(arg, arg_steps)
             for step in arg_steps[:-1]:
-                steps.append(api.FunctionCallExpr(expr.function, *
-                             (args + [step] + expr.args[len(args) + 1:])))
+                steps.append(api.FunctionCallExpr(expr.function, *(args + [step] + expr.args[len(args) + 1:])))
             args.append(arg)
         steps.append(api.FunctionCallExpr(expr.function, *args))
         const = api.Constant(expr.function.function(*args))
@@ -91,18 +90,21 @@ def server(host: str, port: int) -> None:
         # * Fill in start (1)
         # * Fill in end (1)
 
+        server_socket.bind((host, port))  # binding to our server socket an IP address and a port number.
+        server_socket.listen()  # making our server listen for incoming TCP requests.
+
         threads = []
         print(f"Listening on {host}:{port}")
 
         while True:
             try:
                 # Establish connection with client.
-                
-                client_socket, address = # * Fill in start (2) # * Fill in end (2)
+
+                client_socket, address = server_socket.accept()
+                # * Fill in start (2) # * Fill in end (2)
 
                 # Create a new thread to handle the client request
-                thread = threading.Thread(target=client_handler, args=(
-                    client_socket, address))
+                thread = threading.Thread(target=client_handler, args=(client_socket, address))
                 thread.start()
                 threads.append(thread)
             except KeyboardInterrupt:
@@ -122,8 +124,9 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
     with client_socket:  # closes the socket when the block is exited
         print(f"Conection established with {client_addr}")
         while True:
-            
-            data = # * Fill in start (3) # * Fill in end (3)
+
+            data = client_socket.recv(api.BUFFER_SIZE)
+            # * Fill in start (3) # * Fill in end (3)
             if not data:
                 break
             try:
@@ -141,6 +144,8 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                 response = response.pack()
                 print(
                     f"{client_prefix} Sending response of length {len(response)} bytes")
+
+                client_socket.sendall(response)
 
                 # * Fill in start (4)
                 # * Fill in end (4)

@@ -9,7 +9,8 @@ cache: dict[tuple[bytes, bool], api.CalculatorHeader] = {}
 INDEFINITE = api.CalculatorHeader.MAX_CACHE_CONTROL
 
 
-def process_request(request: api.CalculatorHeader, server_address: tuple[str, int]) -> tuple[api.CalculatorHeader, int, int, bool, bool, bool]:
+def process_request(request: api.CalculatorHeader, server_address: tuple[str, int]) -> tuple[
+    api.CalculatorHeader, int, int, bool, bool, bool]:
     '''
     Function which processes the client request if specified we cache the result
     Returns the response, the time remaining before the server deems the response stale, the time remaining before the client deems the response stale, whether the response returned was from the cache, whether the response was stale, and whether we cached the response
@@ -85,7 +86,11 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
 
         # Prepare the proxy socket
         # * Fill in start (1)
+        proxy_socket.bind(proxy_address)  # binding to our proxy socket an IP address and a port number.
+        proxy_socket.listen()  # making our proxy listen for incoming TCP requests.
         # * Fill in end (1)
+
+        print("The server is ready to receive client")
 
         threads = []
         print(f"Listening on {proxy_address[0]}:{proxy_address[1]}")
@@ -93,12 +98,12 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
         while True:
             try:
                 # Establish connection with client.
-                
-                client_socket, client_address = # * Fill in start (2) # * Fill in end (2)
+
+                client_socket, client_address = proxy_socket.accept()
+                # * Fill in start (2) # * Fill in end (2)
 
                 # Create a new thread to handle the client request
-                thread = threading.Thread(target=client_handler, args=(
-                    client_socket, client_address, server_adress))
+                thread = threading.Thread(target=client_handler, args=(client_socket, client_address, server_adress))
                 thread.start()
                 threads.append(thread)
             except KeyboardInterrupt:
@@ -109,7 +114,8 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
             thread.join()
 
 
-def client_handler(client_socket: socket.socket, client_address: tuple[str, int], server_address: tuple[str, int]) -> None:
+def client_handler(client_socket: socket.socket, client_address: tuple[str, int],
+                   server_address: tuple[str, int]) -> None:
     '''
     Function which handles client requests
     '''
@@ -118,9 +124,10 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
         print(f"{client_prefix} Connected established")
         while True:
             # Receive data from the client
-            
-            data = # * Fill in start (3) # * Fill in end (3)
-            
+
+            data = client_socket.recv(api.BUFFER_SIZE)
+            # * Fill in start (3) # * Fill in end (3)
+
             if not data:
                 break
             try:
@@ -155,7 +162,8 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                 # Send the response back to the client
                 # * Fill in start (4)
                 # * Fill in end (4)
-                
+                client_socket.sendall(response)
+
             except Exception as e:
                 print(f"Unexpected server error: {e}")
                 client_socket.sendall(api.CalculatorHeader.from_error(api.CalculatorServerError(
@@ -167,14 +175,14 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(
         description='A Calculator Server.')
 
-    arg_parser.add_argument('-pp', '--proxy_port', type=int, dest='proxy_port',
-                            default=api.DEFAULT_PROXY_PORT, help='The port that the proxy listens on.')
-    arg_parser.add_argument('-ph', '--proxy_host', type=str, dest='proxy_host',
-                            default=api.DEFAULT_PROXY_HOST, help='The host that the proxy listens on.')
-    arg_parser.add_argument('-sp', '--server_port', type=int, dest='server_port',
-                            default=api.DEFAULT_SERVER_PORT, help='The port that the server listens on.')
-    arg_parser.add_argument('-sh', '--server_host', type=str, dest='server_host',
-                            default=api.DEFAULT_SERVER_HOST, help='The host that the server listens on.')
+    arg_parser.add_argument('-pp', '--proxy_port', type=int, dest='proxy_port', default=api.DEFAULT_PROXY_PORT,
+                            help='The port that the proxy listens on.')
+    arg_parser.add_argument('-ph', '--proxy_host', type=str, dest='proxy_host', default=api.DEFAULT_PROXY_HOST,
+                            help='The host that the proxy listens on.')
+    arg_parser.add_argument('-sp', '--server_port', type=int, dest='server_port', default=api.DEFAULT_SERVER_PORT,
+                            help='The port that the server listens on.')
+    arg_parser.add_argument('-sh', '--server_host', type=str, dest='server_host', default=api.DEFAULT_SERVER_HOST,
+                            help='The host that the server listens on.')
 
     args = arg_parser.parse_args()
 
