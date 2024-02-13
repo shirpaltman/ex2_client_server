@@ -86,7 +86,8 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
 
         # Prepare the proxy socket
         # * Fill in start (1)
-        proxy_socket.bind(proxy_address)  # binding to our proxy socket an IP address and a port number.
+        proxy_socket.bind(proxy_address)  # binding to our proxy socket an IP address and a port number
+        # that we get from the function  tuple[str,int].
         proxy_socket.listen()  # making our proxy listen for incoming TCP requests.
         # * Fill in end (1)
 

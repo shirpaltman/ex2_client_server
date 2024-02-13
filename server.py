@@ -91,7 +91,8 @@ def server(host: str, port: int) -> None:
         # * Fill in end (1)
 
         server_socket.bind((host, port))  # binding to our server socket an IP address and a port number.
-        server_socket.listen()  # making our server listen for incoming TCP requests.
+        server_socket.listen(500)  # making our server listen for incoming requests we have limited the maximum
+        # connections to 500 so our server won't need to listen to endless requests which doesn't make sense
 
         threads = []
         print(f"Listening on {host}:{port}")
@@ -101,7 +102,9 @@ def server(host: str, port: int) -> None:
                 # Establish connection with client.
 
                 client_socket, address = server_socket.accept()
-                # * Fill in start (2) # * Fill in end (2)
+                # socket.acceptO,it means that code will continue until a connection is formed
+                # The server accepts the request that the client has sent and it declares the client of that.
+
 
                 # Create a new thread to handle the client request
                 thread = threading.Thread(target=client_handler, args=(client_socket, address))
@@ -126,6 +129,8 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
         while True:
 
             data = client_socket.recv(api.BUFFER_SIZE)
+            # the server gets the data from the client
+
             # * Fill in start (3) # * Fill in end (3)
             if not data:
                 break
@@ -146,6 +151,11 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                     f"{client_prefix} Sending response of length {len(response)} bytes")
 
                 client_socket.sendall(response)
+                # send responses to the client recursively
+                client_socket.close()
+                # close the connection
+                break
+                # get out of the connection when it's closed to avoid an endless loop
 
                 # * Fill in start (4)
                 # * Fill in end (4)
