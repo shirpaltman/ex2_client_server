@@ -86,10 +86,11 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
 
         # Prepare the proxy socket
         # * Fill in start (1)
-        proxy_socket.bind(proxy_address)  # binding to our proxy socket an IP address and a port number
-        # that we get from the function  tuple[str,int].
-        proxy_socket.listen()  # making our proxy listen for incoming TCP requests.
         # * Fill in end (1)
+
+        proxy_socket.bind((proxy_address))  # binding to our proxy server socket an IP address and a port number.
+        proxy_socket.listen(500)  # making our  proxy server listen for incoming requests we have limited the maximum
+        # connections to 500 so our server won't need to listen to endless requests which doesn't make sense
 
         print("The server is ready to receive client")
 
@@ -101,6 +102,9 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
                 # Establish connection with client.
 
                 client_socket, client_address = proxy_socket.accept()
+                # socket.accept(),it means that code will continue until a connection is formed
+                # The proxy accepts the request that the client has sent and it declares the client of that.
+
                 # * Fill in start (2) # * Fill in end (2)
 
                 # Create a new thread to handle the client request
@@ -127,6 +131,7 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
             # Receive data from the client
 
             data = client_socket.recv(api.BUFFER_SIZE)
+            # the proxy gets the data from the client
             # * Fill in start (3) # * Fill in end (3)
 
             if not data:
@@ -164,6 +169,12 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                 # * Fill in start (4)
                 # * Fill in end (4)
                 client_socket.sendall(response)
+                # send responses to the client recursively until there is nothing else to send
+                client_socket.close()
+
+                # close the connection
+                break
+                # get out of the connection when it's closed to avoid an endless loop
 
             except Exception as e:
                 print(f"Unexpected server error: {e}")
@@ -193,3 +204,5 @@ if __name__ == '__main__':
     server_port = args.server_port
 
     proxy((proxy_host, proxy_port), (server_host, server_port))
+
+
